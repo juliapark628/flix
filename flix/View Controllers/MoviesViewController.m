@@ -42,19 +42,38 @@
     NSURLRequest *request = [NSURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:10.0];
     NSURLSession *session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:nil delegateQueue:[NSOperationQueue mainQueue]];
     NSURLSessionDataTask *task = [session dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-        if (error != nil) {
-            NSLog(@"%@", [error localizedDescription]);
+        // if there is no internet connection
+        if (error.code == -1009) {
+            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Cannot Get Movies" message:@"An Internet connection is required to view movies." preferredStyle:(UIAlertControllerStyleAlert)];
+            
+            // try again by refreshing
+            UIAlertAction *refreshAction = [UIAlertAction actionWithTitle:@"Try Again" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                [self fetchMovies];
+            }];
+            
+            // add the refresh action to the alert controller
+            [alert addAction:refreshAction];
+            
+            [self presentViewController:alert animated:YES completion:^{
+                // do nothing
+            }];
         }
+        // if there is any other error...
+        else if (error != nil) {
+            NSLog(@"%@", error);
+        }
+        // if there is no error...
         else {
+            // Get the array of movies
             NSDictionary *dataDictionary = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil];
             
+            // Store the movies in a property to use elsewhere
             self.movies = dataDictionary[@"results"];
             
+            // Reload your table view data
             [self.tableView reloadData];
-            // TODO: Get the array of movies
-            // TODO: Store the movies in a property to use elsewhere
-            // TODO: Reload your table view data
         }
+        
         [self.loadingIndicator stopAnimating];
         [self.refreshControl endRefreshing];
     }];
