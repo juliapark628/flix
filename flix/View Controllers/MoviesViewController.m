@@ -13,6 +13,7 @@
 
 @interface MoviesViewController () <UITableViewDataSource, UITableViewDelegate>
 
+@property (weak, nonatomic) IBOutlet UIActivityIndicatorView *loadingIndicator;
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (nonatomic, strong) NSArray *movies;
 @property (nonatomic, strong) UIRefreshControl *refreshControl;
@@ -24,6 +25,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+    [self.loadingIndicator startAnimating];
     
     self.tableView.dataSource = self;
     self.tableView.delegate = self;
@@ -53,6 +55,7 @@
             // TODO: Store the movies in a property to use elsewhere
             // TODO: Reload your table view data
         }
+        [self.loadingIndicator stopAnimating];
         [self.refreshControl endRefreshing];
     }];
     [task resume];
